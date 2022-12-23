@@ -24,8 +24,6 @@ setInterval(() => {
   })();
 }, 1000);
 
-
-
 function LOG(message, type, bot, player) {
   bot_name = null;
   if (bot == "bot1") {
