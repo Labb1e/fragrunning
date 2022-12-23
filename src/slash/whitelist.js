@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 const mch = require("mc-heads-api");
+const fs = require("fs");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,5 +21,7 @@ module.exports = {
         .setColor("PURPLE"),
       ],
     });
+    
+    fs.appendFile("./src/storage/usernames.csv", `${player.username}\n` , function (err) { if (err) throw err; });
   },
 };

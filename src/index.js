@@ -12,14 +12,19 @@ const PUB1 = process.env.BOT1;
 const PUB2 = process.env.BOT2;
 const ACCOUNT_NAME1 = process.env.ACCOUNT_NAME1;
 const ACCOUNT_NAME2 = process.env.ACCOUNT_NAME2;
+const OWNER_ID = process.env.OWNER_ID;
 const TIME = process.env.TIME;
 
 const usernames = [];
 
-(async () => {
-  const jsonArray = await csv().fromFile("./src/storage/usernames.csv");
-  jsonArray.forEach((item) => usernames.push(item.username));
-})();
+setInterval(() => {
+  (async () => {
+    const jsonArray = await csv().fromFile("./src/storage/usernames.csv");
+    jsonArray.forEach((item) => usernames.push(item.username));
+  })();
+}, 1000);
+
+
 
 function LOG(message, type, bot, player) {
   bot_name = null;
@@ -186,7 +191,39 @@ function createBot(botno) {
       profilesFolder: "./src/storage/.bot1",
     });
 
-    var queue1 = [];
+    const queue1 = [];
+
+    const commandStack = [];
+
+    setInterval(() => {
+      const commmand = commandStack.shift();
+      if (commmand) {
+        LOG(commmand, "command", "bot1");
+        bot1.chat(commmand);
+      }
+    }, 500);
+
+    inParty = false;
+
+    function onPartyJoin() {
+      setTimeout(() => {
+        bot1.chat("/p leave");
+        inParty = false;
+      }, TIME);
+    }
+
+    setInterval(() => {
+      if (queue1.length > 0) {
+        if (!inParty) {
+          const user = queue1.shift();
+          if (user) {
+            console.log(user);
+            commandStack.push("/p join " + user);
+            inParty = true;
+          }
+        }
+      }
+    }, 500);
 
     bot1.on("message", (message) => {
       LOG(message, "chat", "bot1");
@@ -201,27 +238,20 @@ function createBot(botno) {
           const usernum = usernames.indexOf(message.toString().split(" ")[1]);
           const user = usernames[usernum];
           queue1.push(user);
-          console.log(queue1)
           LOG(user + " invited", "public", "bot1", user);
-          LOG("/p join " + user, "command", "bot1");
-          bot1.chat(`/p join ${user}`);
-          setTimeout(() => {
-            LOG("/p leave", "command", "bot1");
-            bot1.chat(`/p leave`);
-          }, TIME);
         }
+      } else if (message.toString().includes(`You have joined`)) {
+        onPartyJoin();
       }
     });
 
     bot1.once("login", () => {
       LOG("Logged in", "info", "bot1");
-      LOG("/p leave", "command", "bot1");
-      bot1.chat("/p leave");
+      commandStack.push("/p leave");
     });
 
     bot1.on("login", () => {
-      LOG("§", "command", "bot1");
-      bot1.chat("§");
+      commandStack.push("§");
     });
 
     bot1.on("kicked", () => {
@@ -230,8 +260,6 @@ function createBot(botno) {
         createBot("bot1");
       }, 5000);
     });
-
-
   } else if (botno == "bot2") {
     var bot2 = mineflayer.createBot({
       viewDistance: "tiny",
@@ -239,11 +267,43 @@ function createBot(botno) {
       defaultChatPatterns: false,
       host: "mc.hypixel.net",
       username: "email",
-      auth: process.env.AUTH2,
+      auth: process.env.AUTH1,
       profilesFolder: "./src/storage/.bot2",
     });
 
-    var queue2 = [];
+    const queue2 = [];
+
+    const commandStack = [];
+
+    setInterval(() => {
+      const commmand = commandStack.shift();
+      if (commmand) {
+        LOG(commmand, "command", "bot2");
+        bot2.chat(commmand);
+      }
+    }, 500);
+
+    inParty = false;
+
+    function onPartyJoin() {
+      setTimeout(() => {
+        bot2.chat("/p leave");
+        inParty = false;
+      }, TIME);
+    }
+
+    setInterval(() => {
+      if (queue2.length > 0) {
+        if (!inParty) {
+          const user = queue2.shift();
+          if (user) {
+            console.log(user);
+            commandStack.push("/p join " + user);
+            inParty = true;
+          }
+        }
+      }
+    }, 500);
 
     bot2.on("message", (message) => {
       LOG(message, "chat", "bot2");
@@ -257,26 +317,21 @@ function createBot(botno) {
         if (usernames.includes(message.toString().split(" ")[1])) {
           const usernum = usernames.indexOf(message.toString().split(" ")[1]);
           const user = usernames[usernum];
+          queue2.push(user);
           LOG(user + " invited", "public", "bot2", user);
-          LOG("/p join " + user, "command", "bot2");
-          bot2.chat(`/p join ${user}`);
-          setTimeout(() => {
-            LOG("/p leave", "command", "bot2");
-            bot2.chat(`/p leave`);
-          }, TIME);
         }
+      } else if (message.toString().includes(`You have joined`)) {
+        onPartyJoin();
       }
     });
 
     bot2.once("login", () => {
       LOG("Logged in", "info", "bot2");
-      LOG("/p leave", "command", "bot2");
-      bot2.chat("/p leave");
+      commandStack.push("/p leave");
     });
 
     bot2.on("login", () => {
-      LOG("§", "command", "bot2");
-      bot2.chat("§");
+      commandStack.push("§");
     });
 
     bot2.on("kicked", () => {
