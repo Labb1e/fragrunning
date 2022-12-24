@@ -236,7 +236,7 @@ function createBot(botno) {
           const usernum = usernames.indexOf(message.toString().split(" ")[1]);
           const user = usernames[usernum];
           queue1.push(user);
-          LOG(user + " invited", "public", "bot1", user);
+          LOG(user, "public", "bot1", user);
         }
       } else if (message.toString().includes(`You have joined`)) {
         onPartyJoin();
@@ -316,7 +316,7 @@ function createBot(botno) {
           const usernum = usernames.indexOf(message.toString().split(" ")[1]);
           const user = usernames[usernum];
           queue2.push(user);
-          LOG(user + " invited", "public", "bot2", user);
+          LOG(user, "public", "bot2", user);
         }
       } else if (message.toString().includes(`You have joined`)) {
         onPartyJoin();
